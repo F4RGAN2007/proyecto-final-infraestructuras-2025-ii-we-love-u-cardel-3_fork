@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokedex-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pokedex-db
+  template:
+    metadata:
+      labels:
+        app: pokedex-db
+    spec:
+      containers:
+        - name: db
+          image: gcr.io/pokedex-gke-480609/pokedex-db:latest
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: "postgres"
+            - name: POSTGRES_PASSWORD
+              value: "postgres"
+            - name: POSTGRES_DB
+              value: "pokedexdb"
+            - name: PGDATA
+              value: "/var/lib/postgresql/data/pgdata"
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: postgres-storage
+      volumes:
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: pokedex-postgres-pvc

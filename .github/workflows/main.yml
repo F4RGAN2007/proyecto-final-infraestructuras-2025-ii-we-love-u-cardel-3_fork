@@ -1,0 +1,58 @@
+name: Continuos Integration Pokedex Project
+
+on:
+  push:
+  pull_request:
+    types: [opened, reopened]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+
+    env:
+      PROJECT_ID: pokedex-gke-480609
+      ZONE: us-central1-a
+      CLUSTER_NAME: pokedex-cluster
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20
+
+    - name: Install frontend dependencies
+      run: npm install
+      working-directory: ./client
+
+    - name: Install backend dependencies
+      run: npm install
+      working-directory: ./server
+
+    - name: Build frontend
+      run: npm run build
+      working-directory: ./client
+
+    # AUTENTICACIÓN
+    - name: Authenticate to GCP
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+    # INSTALA kubectl Y EL GKE AUTH PLUGIN AUTOMÁTICAMENTE
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        project_id: ${{ env.PROJECT_ID }}
+        install_components: 'gke-gcloud-auth-plugin'
+
+    # OBTENER CREDENCIALES DEL CLUSTER
+    - name: Get GKE credentials
+      run: |
+        gcloud container clusters get-credentials ${{ env.CLUSTER_NAME }} \
+        --zone ${{ env.ZONE }} --project ${{ env.PROJECT_ID }}
+
+    # DEPLOY
+    - name: Deploy to GKE
+      run: kubectl apply -f k8s/

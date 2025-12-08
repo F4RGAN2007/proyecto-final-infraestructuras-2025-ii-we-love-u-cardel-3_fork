@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: server-config
+data:
+  DB_HOST: "pokedex-db.default.svc.cluster.local"
+  DB_USER: "postgres"
+  DB_PORT: "5432"
+  DB_NAME: "pokedexdb"
+  PORT: "4000"
+  CORS_ORIGIN: "http://35.202.35.5"

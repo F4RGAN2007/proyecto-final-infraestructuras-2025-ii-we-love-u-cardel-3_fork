@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokedex-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pokedex-server
+  template:
+    metadata:
+      labels:
+        app: pokedex-server
+    spec:
+      containers:
+        - name: server
+          image: gcr.io/pokedex-gke-480609/pokedex-server:latest
+          ports:
+            - containerPort: 4000
+          env:
+            - name: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: DB_HOST
+            - name: DB_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: DB_USER
+            - name: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: DB_PORT
+            - name: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: DB_NAME
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: PORT
+            - name: CORS_ORIGIN
+              valueFrom:
+                configMapKeyRef:
+                  name: server-config
+                  key: CORS_ORIGIN
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: server-secret
+                  key: DB_PASSWORD
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: server-secret
+                  key: JWT_SECRET

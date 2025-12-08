@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+  db:
+    build:
+      context: ./BD
+    container_name: pokedex_db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: userprofiles
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./BD/basedato.sql:/docker-entrypoint-initdb.d/basedato.sql
+    networks:
+      - pokedex_net
+    restart: unless-stopped
+
+  server:
+    build:
+      context: ./server
+    container_name: pokedex_server
+    ports:
+      - "4000:4000"
+    environment:
+      DB_HOST: db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: userprofiles
+      DB_PORT: 5432
+      JWT_SECRET: supersecretkey
+      CORS_ORIGIN: http://localhost:5173
+      PORT: 4000
+    depends_on:
+      - db
+    networks:
+      - pokedex_net
+    restart: unless-stopped
+
+  client:
+    build:
+      context: ./client
+      args:
+        - VITE_API_URL=http://localhost:4000/api
+    container_name: pokedex_client
+    ports:
+      - "5173:80"
+    depends_on:
+      - server
+    networks:
+      - pokedex_net
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  pokedex_net:
+    driver: bridge

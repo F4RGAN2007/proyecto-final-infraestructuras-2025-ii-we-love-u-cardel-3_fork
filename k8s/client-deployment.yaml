@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pokedex-client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pokedex-client
+  template:
+    metadata:
+      labels:
+        app: pokedex-client
+    spec:
+      containers:
+        - name: client
+          image: gcr.io/pokedex-gke-480609/pokedex-client:latest
+          ports:
+            - containerPort: 80
