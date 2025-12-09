@@ -1,47 +1,107 @@
-name: SonarCloud Scan
+name: CI + SonarCloud
 
 on:
   push:
-    branches:
-      - main
+    branches: [ "main" ]
   pull_request:
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, edited]
 
 jobs:
-  sonarcloud:
-    name: SonarCloud analysis
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
 
-      # ---- CLIENT ----
-      - name: Install dependencies (client)
-        run: npm install
-        working-directory: client
+    - name: Install dependencies
+      run: |
+        npm client
 
-      # ---- SERVER ----
-      - name: Install dependencies (server)
-        run: npm install
-        working-directory: server
+    - name: Run build/tests
+      run: |name: CI + SonarCloud
 
-      # ---- SONARCLOUD ----
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
-        with:
-          args: >
-            -Dsonar.projectKey=TU_ORG_TU_REPO
-            -Dsonar.organization=TU_ORG
-            -Dsonar.sources=client/src,server/src
-            -Dsonar.exclusions=**/node_modules/**,**/*.png,**/*.md,**/docs/**
-            -Dsonar.javascript.lcov.reportPaths=
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0   # requerido para sonarcloud
+
+    - name: Set up Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    # -------------------------
+    # INSTALAR DEPENDENCIAS
+    # -------------------------
+    - name: Install client deps
+      run: npm install
+      working-directory: ./client
+
+    - name: Install server deps
+      run: npm install
+      working-directory: ./server
+
+    # -------------------------
+    # BUILD Y TEST
+    # -------------------------
+    - name: Build client
+      run: npm run build --if-present
+      working-directory: ./client
+
+    - name: Build server
+      run: npm run build --if-present
+      working-directory: ./server
+
+    - name: Run tests client
+      run: npm test --if-present
+      working-directory: ./client
+
+    - name: Run tests server
+      run: npm test --if-present
+      working-directory: ./server
+
+    # -------------------------
+    # SONARCLOUD
+    # -------------------------
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@v2
+      with:
+        args: >
+          -Dsonar.projectKey=F4RGAN2007_proyecto-final-infraestructuras-2025-ii-we-love-u-cardel-3_fork
+          -Dsonar.organization=f4rgan2007
+          -Dsonar.sources=client/src,server/src
+          -Dsonar.exclusions=**/node_modules/**,**/*.png,**/*.md,**/docs/**
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}   # PROTEGIDO
+
+        npm run build --if-present
+        npm test --if-present
+
+    - name: SonarCloud Scan
+      uses: SonarSource/sonarcloud-github-action@v2
+      with:
+        args: >
+          -Dsonar.projectKey=F4RGAN2007_proyecto-final-infraestructuras-2025-ii-we-love-u-cardel-3_fork
+          -Dsonar.organization=f4rgan2007
+          -Dsonar.sources=client,server
+          -Dsonar.exclusions=**/node_modules/**,**/*.png,**/*.md,**/docs/**
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
