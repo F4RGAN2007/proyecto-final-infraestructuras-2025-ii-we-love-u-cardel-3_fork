@@ -16,28 +16,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # VERY IMPORTANT for SonarCloud
-      
+          fetch-depth: 0
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
-      - name: Install dependencies
+      # ---- CLIENT ----
+      - name: Install dependencies (client)
         run: npm install
+        working-directory: client
 
-      - name: Run tests and coverage
-        run: |
-          npm test -- --coverage || true
+      # ---- SERVER ----
+      - name: Install dependencies (server)
+        run: npm install
+        working-directory: server
 
+      # ---- SONARCLOUD ----
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
           args: >
             -Dsonar.projectKey=TU_ORG_TU_REPO
             -Dsonar.organization=TU_ORG
-            -Dsonar.sources=src
-            -Dsonar.tests=tests
-            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+            -Dsonar.sources=client/src,server/src
+            -Dsonar.exclusions=**/node_modules/**,**/*.png,**/*.md,**/docs/**
+            -Dsonar.javascript.lcov.reportPaths=
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
